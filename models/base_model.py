@@ -41,7 +41,6 @@ class BaseModel:
         self.updated_time() = datetime.now()
         storage.save()
 
-
     def to_dict(self):
         """converts the instance attributes to a dictionary.
         Dictionary containing all keys/values of __dict__ of the instance
