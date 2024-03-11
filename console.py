@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import cmd
+import sys
 
 
 """Simple command processor for HBnB"""
@@ -7,11 +8,9 @@ import cmd
 
 class HBNBCommand(cmd.Cmd):
     """Set the command prompt"""
-    prompt = "(hbnb) "
 
-    def emptyline(self):
-        """Do not execute anything"""
-        pass
+
+    prompt = "(hbnb) "
 
     def do_quit(self, arg):
         """Quit command to exit the program
@@ -21,9 +20,11 @@ class HBNBCommand(cmd.Cmd):
     def do_EOF(self, arg):
         """Quit command to exit the program
         """
-        print()
         return True
 
+    def emptyline(self):
+        """Do not execute anything"""
+        pass
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
