@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import cmd
-import sys
-
+import re
 
 """Simple command processor for HBnB"""
 
@@ -21,6 +20,10 @@ class HBNBCommand(cmd.Cmd):
         """Quit command to exit the program
         """
         return True
+
+    def do_help(self, arg):
+        """Help command to display help information"""
+        super().do_help(arg)
 
     def emptyline(self):
         """Do not execute anything"""
