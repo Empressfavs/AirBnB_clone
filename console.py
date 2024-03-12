@@ -1,24 +1,19 @@
 #!/usr/bin/python3
-import cmd
-import re
+"""Defines the HBnB console."""
 
-"""Simple command processor for HBnB"""
+import cmd
 
 
 class HBNBCommand(cmd.Cmd):
-    """Set the command prompt"""
-
-
-    prompt = "(hbnb) "
+    prompt = '(hbnb) '
 
     def do_quit(self, arg):
-        """Quit command to exit the program
-        """
+        """Quit command to exit the program"""
         return True
 
     def do_EOF(self, arg):
-        """Quit command to exit the program
-        """
+        """EOF command to exit the program"""
+        print("")  # To print a newline before exiting
         return True
 
     def do_help(self, arg):
@@ -26,8 +21,9 @@ class HBNBCommand(cmd.Cmd):
         super().do_help(arg)
 
     def emptyline(self):
-        """Do not execute anything"""
+        """Do nothing on an empty line"""
         pass
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
