@@ -2,10 +2,23 @@
 """Defines the HBnB console."""
 
 import cmd
+import json
+import models
+from models.base_model import BaseModel
 
 
 class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) '
+    class_list = ['BaseModel', 'User', 'State', 'City', 'Amenity',
+                  'Place', 'Review']
+    class_atts = {
+        "all": "do_all",
+        "count": "do_count",
+        "show": "do_show",
+        "update": "do_update",
+        "destroy": "do_destroy"
+        }
+
 
     def do_quit(self, arg):
         """Quit command to exit the program"""
@@ -20,8 +33,184 @@ class HBNBCommand(cmd.Cmd):
         """Help command to display help information"""
         super().do_help(arg)
 
+    def do_create(self, args):
+        """Creates a new instance of BaseModel and print its id"""
+        tokens = args.split()
+        if not self.class_check(tokens):
+            return
+        new_instance = eval(tokens[0] + '()')
+        if isinstance(new_instance, BaseModel):
+            new_instance.save()
+            print(new_instance.id)
+        return
+
+    def do_show(self, args):
+        """Prints the string representation of an instance
+        based on the class name and id"""
+        tokens = args.split()
+        objects = models.storage.all()
+        if not self.class_check(tokens):
+            return
+        if not self.id_check(tokens):
+            return
+        key = f"{tokens[0]}.{tokens[1]}"
+        print(objects[key])
+
+    def do_destroy(self, args):
+        """ Deletes an object/instance using classname and id
+        """
+        tokens = args.split()
+        objects = models.storage.all()
+        if not self.class_check(tokens):
+            return
+        if not self.id_check(tokens):
+            return
+        key = f"{tokens[0]}.{tokens[1]}"
+        del objects[key]
+        models.storage.save()
+
+    def do_all(self, args):
+        """all command prints a string repr of all instances
+        based on class name and id
+
+        Args:
+            args (string): Class name and Instance ID
+
+        """
+        tokens = args.split()
+        objects = models.storage.all()
+        new_list = []
+        if len(tokens) == 0:
+            for value in objects.values():
+                new_list.append(str(value))
+        elif tokens[0] in HBNBCommand.class_list:
+            for key, value in objects.items():
+                if tokens[0] == value.__class__.__name__:
+                    new_list.append(str(value))
+        else:
+            print("** class doesn't exist **")
+            return False
+        print(new_list)
+
+    def do_update(self, args):
+        """updates the attributes of an Object
+
+        Args:
+            args (str): ClassName ID Attribute "Value"
+
+        """
+        tokens = args.split()
+        if tokens[3].find('"') != -1:
+            temp = tokens[3]
+            start = temp.find('"')
+            end = temp.find('"', start + 1)
+            tokens[3] = temp[start + 1: end]
+
+        objects = models.storage.all()
+
+        if not self.class_check(tokens):
+            return
+        if not self.id_check(tokens):
+            return
+        key = f"{tokens[0]}.{tokens[1]}"
+        setattr(objects[key], tokens[2], tokens[3])
+        models.storage.save()
+
+    def default(self, args):
+        """
+        A predefined method that is executed when no
+        specific command or input is provided
+        """
+        objects = models.storage.all()
+        tokens = args.strip('()').split('.')
+        if len(tokens) < 2:
+            print("** missing attribute **")
+            return
+        cmd_class = tokens[0]
+        cmd_class = cmd_class[0].capitalize() + cmd_class[1:]
+        cmd_att = tokens[1].strip(")").split('(')
+        if len(cmd_att) > 1:
+            cmd_arg = cmd_att[1].strip('""')
+        if cmd_class not in HBNBCommand.class_list:
+            print("** class doesn't exist **")
+            return
+        if cmd_att[0] not in HBNBCommand.class_atts:
+            print("** attribute doesn't exist")
+            return
+        if cmd_att[0] == "all":
+            HBNBCommand.do_all(self, cmd_class)
+            return
+        if cmd_att[0] == "count":
+            count = 0
+            for k in objects.keys():
+                key = k.split(".")
+                if cmd_class == key[0]:
+                    count += 1
+            print(count)
+            return
+        if cmd_att[0] == "show":
+            if HBNBCommand.attr_check(cmd_arg):
+                token = f"{cmd_class} {cmd_arg}"
+                HBNBCommand.do_show(self, token)
+            return
+        if cmd_att[0] == "destroy":
+            # if HBNBCommand.id_check(cmd_arg):
+            token = f"{cmd_class} {cmd_arg}"
+            HBNBCommand.do_destroy(self, token)
+            return
+        if cmd_att[0] == "update":
+            cmd_update = cmd_att[1].split(', ')
+            tokens = []
+            for item in cmd_update:
+                tokens.append(item.strip('"'))
+            vals = f"{cmd_class} {tokens[0]} {tokens[1]} {tokens[2]}"
+            HBNBCommand.do_update(self, vals)
+            return
+
+    @classmethod
+    def class_check(cls, tokens):
+        """Class method checks if a given token matches
+        a class name in the `class_list`
+
+        """
+        if len(tokens) == 0:
+            print('** class name missing **')
+            return False
+        elif tokens[0] not in cls.class_list:
+            print("** class doesn't exist **")
+            return False
+        return True
+
+    @staticmethod
+    def id_check(tokens):
+        """Static method to verify the id.
+        """
+        if len(tokens) < 2:
+            print('** instance id missing **')
+            return False
+        objects = models.storage.all()
+        key = f"{tokens[0]}.{tokens[1]}"
+        if key not in objects.keys():
+            print('** no instance found **')
+            return False
+        return True
+
+    @staticmethod
+    def attr_check(tokens):
+        """static method to verify a command passed to
+        update an attribute is valid
+
+        """
+
+        if len(tokens) < 3:
+            print("** attribute name missing **")
+            return False
+        if len(tokens) < 4:
+            print("** value missing **")
+        return True
+
     def emptyline(self):
-        """Do nothing on an empty line"""
+        "Do nothing when an emptyline is entered"
         pass
 
 
